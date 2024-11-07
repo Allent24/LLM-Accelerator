@@ -1,0 +1,9 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# SystemVerilog specific rules
+[*.sv]
+indent_style = space   # Use spaces for indentation
+indent_size = 4         # 4 spaces per indentation level
