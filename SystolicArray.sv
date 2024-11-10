@@ -25,7 +25,7 @@
 
 module SystolicArray 
     #(parameter WIDTH = 8,  // Data width
-                    SIZE = 8) ( // Array dimensions (SIZE x SIZE)
+                SIZE = 8) ( // Array dimensions (SIZE x SIZE)
 	input logic clock, reset_n, load, clear, 
    input logic carry_enable [SIZE-1:0],
    input logic [WIDTH-1:0] weight_data [SIZE-1:0], 
@@ -43,8 +43,8 @@ module SystolicArray
 			for (j = 0; j < SIZE; j++) begin : PE_COLUMNS // Generate columns of PEs
 				// Instantiate a PE at each array position
             PE #(WIDTH) PE_inst 
-							(.clock				(clock),
-							.reset_n          (reset_n),
+					(.clock				(clock),
+                     .reset_n          (reset_n),
                      .load             (load),
                      .clear            (clear),
                      .carry_enable     (carry_enable[j]),
@@ -56,10 +56,10 @@ module SystolicArray
                      .data_in_carry    (data_in_across[i][j+1]));                            
 			end
     
-         always_comb begin 
+             always_comb begin 
 				weight_down[0][i] = weight_data[i]; // Assign weight data to the first row
-            data_in_across[i][0] = input_data[i]; // Assign input data to the first column
-            output_data[i] = result_across[i][SIZE]; // Assign the last result in the row to the output
+                data_in_across[i][0] = input_data[i]; // Assign input data to the first column
+                output_data[i] = result_across[i][SIZE]; // Assign the last result in the row to the output
 			end
 		end
 	endgenerate 
