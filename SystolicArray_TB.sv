@@ -100,6 +100,7 @@ module SystolicArray_TB
 	// Task to clear the systolic array
 	task clearArray();
 		clear <= 1;
+		partialSum <= '{default: '0};
 		showValueFor(CLEAR);
 		@(posedge clock);
 		clear <= 0;
@@ -154,7 +155,6 @@ module SystolicArray_TB
 		checkResults();
 		
 		clearArray();
-		carryResults();
 		checkResults();
 		
 		$display("***********************************************");

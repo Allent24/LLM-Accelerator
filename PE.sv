@@ -1,5 +1,33 @@
 `timescale 1 ps / 1 ps
 
+/* 
+* Processing Element (PE) Module
+* Created By: Jordi Marcial Cruz
+* Project: LLM Accelerator 
+* Updated: November 10, 2024
+*
+* Description:
+* This module implements a single Processing Element (PE) for a Systolic Array. 
+* Each PE performs a multiply-accumulate operation on input data and weights.
+* This module utilizes Logic Element (LE) multipliers instead of Digital Signal Processing (DSP) blocks
+* to achieve a higher maximum operating frequency.
+*
+* Inputs:
+    * clock: Clock signal.
+    * reset_n: Asynchronous reset signal (active low).
+    * load: Load signal to enable loading of the accumulator.
+    * clear: Clear signal to reset the accumulator.
+    * carry_enable: Enable signal for carrying results between PEs.
+    * data_in: Input data.
+    * weight: Weight value.
+    * result_carry: Carry result from the previous PE.
+*
+* Outputs:
+    * result: Output result of the PE.
+    * weight_carry: Carry output for the weight (to the next PE in the row).
+    * data_in_carry: Carry output for the input data (to the next PE in the column). 
+*/
+
 module PE 
 	#(parameter WIDTH = 32)(
 	input logic clock, reset_n, load, clear, carry_enable,
@@ -8,7 +36,7 @@ module PE
 	
 	logic [WIDTH-1:0] mult_result, accumulator;
 	
-	Multiplier #(WIDTH, WIDTH*2) Mult (
+	LE_Multiplier #(WIDTH, WIDTH*2) Mult (
 			.dataa(data_in),
 			.datab(weight),
 			.result(mult_result));
@@ -25,4 +53,3 @@ module PE
 	assign data_in_carry = data_in;
 
 endmodule : PE
-
