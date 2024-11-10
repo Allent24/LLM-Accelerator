@@ -61,7 +61,6 @@ module PE_TB
 		load <= 0;
 		for (i = 0; i < numOfMults; i ++) begin
 			multiply(inputData,weightData); // Perform multiple multiplications
-        end
 		end
 		
 		showValueFor(MULTIPLICATION); // Display multiplication information
