@@ -1,4 +1,4 @@
-///`timescale 1 ps / 1 ps
+`timescale 1 ps / 1 ps
 
 /* 
 * Systolic Array Testbench
@@ -18,7 +18,7 @@
     * Clearing the systolic array.
     * Verifying results against expected values.
 */
-/***
+
 module SystolicArray_TB
 	#(parameter WIDTH = 32,	// Output for SA must be 22 bits or greater for a 8-bit 64x64 matrix
 					SIZE = 2);
@@ -165,4 +165,3 @@ module SystolicArray_TB
 	end 
 	
 endmodule : SystolicArray_TB
-***/
