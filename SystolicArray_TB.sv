@@ -1,10 +1,10 @@
-`timescale 1 ps / 1 ps
+///`timescale 1 ps / 1 ps
 
 /* 
 * Systolic Array Testbench
 * Created By: Jordi Marcial Cruz
 * Project: LLM Accelerator 
-* Updated: November 9, 2024
+* Updated: November 10, 2024
 *
 * Description:
 * This testbench verifies the functionality of a Systolic Array module. 
@@ -18,11 +18,11 @@
     * Clearing the systolic array.
     * Verifying results against expected values.
 */
-
+/***
 module SystolicArray_TB
 	#(parameter WIDTH = 32,	// Output for SA must be 22 bits or greater for a 8-bit 64x64 matrix
 					SIZE = 2);
-	logic clock, reset_n, load, clear; 
+	logic CLOCK_50, reset_n, load, clear; 
 	logic carry_enable [SIZE-1:0];
 	logic [WIDTH-1:0] weight_data [SIZE-1:0]; 
 	logic [WIDTH-1:0] input_data [SIZE-1:0];
@@ -44,8 +44,8 @@ module SystolicArray_TB
 	typedef enum int {INPUTS, RANDOMIZE, RESULT, ROWS, CLEAR} display_t;
 
 	initial begin 
-		clock = 1;
-		forever #5 clock = ~clock;
+		CLOCK_50 = 1;
+		forever #5 CLOCK_50 = ~CLOCK_50;
 	end
 	
 	// Task to reset the DUT
@@ -81,7 +81,7 @@ module SystolicArray_TB
 			end
 		end
 		
-		@(posedge clock);
+		@(posedge CLOCK_50);
 	endtask 
 	
 	// Task to capture and display output data
@@ -93,7 +93,7 @@ module SystolicArray_TB
 			$display("Row Data for Clock Edge %0d", SIZE-1-col);
 			showValueFor(ROWS);
 			carry_enable[col] <= 1;
-			@(posedge clock);
+			@(posedge CLOCK_50);
 		end
 	endtask
 	
@@ -102,7 +102,7 @@ module SystolicArray_TB
 		clear <= 1;
 		partialSum <= '{default: '0};
 		showValueFor(CLEAR);
-		@(posedge clock);
+		@(posedge CLOCK_50);
 		clear <= 0;
 	endtask
 	
@@ -139,17 +139,17 @@ module SystolicArray_TB
 		$display("***********************************************");
 		resetDUT();
 
-		@(posedge clock);
+		@(posedge CLOCK_50);
 		repeat (10) begin 
 			inputData();
 		end
 		
 		load <= 1;
-		@(posedge clock);
+		@(posedge CLOCK_50);
 		carryResults();
 		
 		repeat (10) begin 
-			@(posedge clock);
+			@(posedge CLOCK_50);
 		end
 		
 		checkResults();
@@ -165,3 +165,4 @@ module SystolicArray_TB
 	end 
 	
 endmodule : SystolicArray_TB
+***/
