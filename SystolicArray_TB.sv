@@ -4,9 +4,9 @@ module SystolicArray_TB
     #(parameter WIDTH = 32, // Output for SA must be 22 bits or greater for an 8-bit 64x64 matrix
                 SIZE = 2);
 
-    logic CLOCK_50, reset_n, load, clear;
+    logic clock, reset_n, load, clear;
     // Instantiate the Design Interface
-    DesignInterface #(WIDTH, SIZE) SA_Interface(CLOCK_50);
+    DesignInterface #(WIDTH, SIZE) SA_Interface(clock);
 
     // Instantiate the Device Under Test (DUT) with the interface
     SystolicArray #(WIDTH, SIZE) DUT (
@@ -27,8 +27,8 @@ module SystolicArray_TB
 
     // Clock generation
     initial begin 
-        CLOCK_50 = 1;
-        forever #5 CLOCK_50 = ~CLOCK_50;
+        clock = 1;
+        forever #5 clock = ~clock;
     end
 
     // Task to reset the DUT
@@ -66,7 +66,7 @@ module SystolicArray_TB
             end
         end
 
-        @(posedge CLOCK_50);
+        @(posedge clock);
     endtask 
 
     // Task to capture and display output data
@@ -78,7 +78,7 @@ module SystolicArray_TB
             $display("Row Data for Clock Edge %0d", SIZE - 1 - col);
             showValueFor(ROWS);
             SA_Interface.systolic_array_carry_enable[col] <= 1;
-            @(posedge CLOCK_50);
+            @(posedge clock);
         end
     endtask
 
@@ -87,7 +87,7 @@ module SystolicArray_TB
         SA_Interface.systolic_array_clear <= 1;
         partialSum <= '{default: '0};
         showValueFor(CLEAR);
-        @(posedge CLOCK_50);
+        @(posedge clock);
         SA_Interface.systolic_array_clear <= 0;
     endtask
 
@@ -127,17 +127,17 @@ module SystolicArray_TB
         $display("***********************************************");
         resetDUT();
 
-        @(posedge CLOCK_50);
+        @(posedge clock);
         repeat (10) begin 
             inputData();
         end
         
         SA_Interface.systolic_array_load <= 1;
-        @(posedge CLOCK_50);
+        @(posedge clock);
         carryResults();
         
         repeat (10) begin 
-            @(posedge CLOCK_50);
+            @(posedge clock);
         end
 
         checkResults();
