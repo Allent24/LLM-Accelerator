@@ -47,9 +47,9 @@ module SystolicArray #(parameter WIDTH = 8, SIZE = 6) (DesignInterface SA);
             end
 
             always_comb begin
-                weight_down[0][i] = SA.data_path.weight_buffer_output_data[i];
-                data_in_across[i][0] = SA.data_path.input_buffer_output_data[i];
-                SA.data_path.systolic_array_output_data[i] = result_across[i][SIZE];
+                weight_down[0][i] = SA.data.weight_buffer_output[i];
+                data_in_across[i][0] = SA.data.input_buffer_output[i];
+                SA.data.systolic_array_output[i] = result_across[i][SIZE];
             end
         end
     endgenerate

@@ -1,6 +1,24 @@
+///`timescale 1 ps / 1 ps
 
-`timescale 1 ps / 1 ps
-
+/* 
+* Systolic Array Testbench
+* Created By: Jordi Marcial Cruz
+* Project: LLM Accelerator 
+* Updated: November 10, 2024
+*
+* Description:
+* This testbench verifies the functionality of a Systolic Array module. 
+* It provides stimuli to the Systolic Array and checks the output against expected results.
+* The testbench utilizes randomized input data and supports parameterized array dimensions.
+* Key features include:
+    * Resetting the DUT.
+    * Applying random input data.
+    * Calculating expected outputs.
+    * Capturing output data.
+    * Clearing the systolic array.
+    * Verifying results against expected values.
+*/
+/***
 module SystolicArray_TB
     #(parameter WIDTH = 32, // Output for SA must be 22 bits or greater for an 8-bit 64x64 matrix
                 SIZE = 2);
@@ -154,5 +172,4 @@ module SystolicArray_TB
     end
 
 endmodule : SystolicArray_TB
-
 // ***/

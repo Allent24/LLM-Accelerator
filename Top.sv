@@ -43,12 +43,17 @@ module Top #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (
     WeightBuffer #(WIDTH, SIZE, ADDR) weight_buffer_inst (
         .WB(TOP)
     );
+	 
+	 OutputBuffer #(WIDTH, SIZE, ADDR) output_buffer_inst (
+        .OB(TOP)
+    );
 
     SystolicArray #(WIDTH, SIZE) systolic_array_inst (
         .SA(TOP)
     );
 
     // Assign output from the Systolic Array
-    assign systolic_array_output_data = TOP.data_path.systolic_array_output_data;
+    assign systolic_array_output_data = TOP.data.systolic_array_output;
 
 endmodule : Top
+
