@@ -24,34 +24,34 @@
 */
 
 module SystolicArray #(parameter WIDTH = 8, SIZE = 6) (DesignInterface SA);
-	logic [WIDTH-1:0] weight_down [SIZE:0] [SIZE-1:0];
-	logic [WIDTH-1:0] data_in_across [SIZE-1:0] [SIZE:0];
-	logic [WIDTH-1:0] result_across [SIZE-1:0] [SIZE:0];
-	
-	genvar i,j;
-	generate 
-		for (i = 0; i < SIZE; i++) begin : PE_ROWS
-			for (j = 0; j < SIZE; j++) begin : PE_COLUMNS
-				PE #(WIDTH) PE_inst
-								(.clock				(SA.clock),
-								.reset_n				(SA.reset_n),
-								.load					(SA.systolic_array_load),
-								.clear				(SA.systolic_array_clear),
-								.carry_enable		(SA.systolic_array_carry_enable[j]),
-								.data_in				(data_in_across[i][j]),
-								.weight				(weight_down[i][j]),
-								.result_carry		(result_across[i][j]),
-								.result				(result_across[i][j+1]),
-								.weight_carry		(weight_down[i+1][j]),
-								.data_in_carry		(data_in_across[i][j+1]));							
-			end
-	
-			always_comb begin 
-				weight_down[0][i] = SA.weight_buffer_output_data[i];
-				data_in_across[i][0] = SA.input_buffer_output_data[i];
-				SA.systolic_array_output_data[i] = result_across[i][SIZE];
-			end
-		end
-	endgenerate 
-	
+    logic [WIDTH-1:0] weight_down [SIZE:0] [SIZE-1:0];
+    logic [WIDTH-1:0] data_in_across [SIZE-1:0] [SIZE:0];
+    logic [WIDTH-1:0] result_across [SIZE-1:0] [SIZE:0];
+
+    genvar i, j;
+    generate
+        for (i = 0; i < SIZE; i++) begin : PE_ROWS
+            for (j = 0; j < SIZE; j++) begin : PE_COLUMNS
+                PE #(WIDTH) PE_inst
+                    (.clock				(SA.clock),
+                     .reset_n				(SA.reset_n),
+                     .load					(SA.control.systolic_array_load),
+                     .clear				(SA.control.systolic_array_clear),
+                     .carry_enable		(SA.control.systolic_array_carry_enable[j]),
+                     .data_in				(data_in_across[i][j]),
+                     .weight				(weight_down[i][j]),
+                     .result_carry		(result_across[i][j]),
+                     .result				(result_across[i][j+1]),
+                     .weight_carry		(weight_down[i+1][j]),
+                     .data_in_carry		(data_in_across[i][j+1]));
+            end
+
+            always_comb begin
+                weight_down[0][i] = SA.data_path.weight_buffer_output_data[i];
+                data_in_across[i][0] = SA.data_path.input_buffer_output_data[i];
+                SA.data_path.systolic_array_output_data[i] = result_across[i][SIZE];
+            end
+        end
+    endgenerate
+
 endmodule : SystolicArray

@@ -1,10 +1,11 @@
+
 `timescale 1 ps / 1 ps
 
 module SystolicArray_TB
     #(parameter WIDTH = 32, // Output for SA must be 22 bits or greater for an 8-bit 64x64 matrix
                 SIZE = 2);
 
-    logic clock, reset_n, load, clear;
+    logic clock, reset_n;
     // Instantiate the Design Interface
     DesignInterface #(WIDTH, SIZE) SA_Interface(clock);
 
@@ -35,12 +36,12 @@ module SystolicArray_TB
     task resetDUT();
         begin
             SA_Interface.reset_n = 0;
-            SA_Interface.systolic_array_load = 0;
-            SA_Interface.systolic_array_clear = 0;
+            SA_Interface.control.systolic_array_load = 0;
+            SA_Interface.control.systolic_array_clear = 0;
             partialSum = '{default: '0};
-            SA_Interface.systolic_array_carry_enable = '{default: '0};
-            SA_Interface.weight_buffer_output_data = '{default: '0};
-            SA_Interface.input_buffer_output_data = '{default: '0};
+            SA_Interface.control.systolic_array_carry_enable = '{default: '0};
+            SA_Interface.data_path.weight_buffer_output_data = '{default: '0};
+            SA_Interface.data_path.input_buffer_output_data = '{default: '0};
             #10;
             SA_Interface.reset_n = 1;
         end
@@ -59,8 +60,8 @@ module SystolicArray_TB
         randomizeInputs();
 
         for (int row = 0; row < SIZE; row++) begin
-            SA_Interface.weight_buffer_output_data[row] <= w[row];
-            SA_Interface.input_buffer_output_data[row] <= x[row];
+            SA_Interface.data_path.weight_buffer_output_data[row] <= w[row];
+            SA_Interface.data_path.input_buffer_output_data[row] <= x[row];
             for (int col = 0; col < SIZE; col++) begin
                 partialSum[row][col] <= partialSum[row][col] + (x[row] * w[col]);
             end
@@ -70,29 +71,29 @@ module SystolicArray_TB
     endtask 
 
     // Task to capture and display output data
-    task carryResults();
+    task automatic carryResults();
         for (int col = SIZE - 1; col > -1; col--) begin
             for (int row = 0; row < SIZE; row++) begin 
-                storedResults[row].push_back(SA_Interface.systolic_array_output_data[row]);
+                storedResults[row].push_back(SA_Interface.data_path.systolic_array_output_data[row]);
             end
             $display("Row Data for Clock Edge %0d", SIZE - 1 - col);
             showValueFor(ROWS);
-            SA_Interface.systolic_array_carry_enable[col] <= 1;
+            SA_Interface.control.systolic_array_carry_enable[col] <= 1;
             @(posedge clock);
         end
     endtask
 
     // Task to clear the systolic array
-    task clearArray();
-        SA_Interface.systolic_array_clear <= 1;
+    task automatic clearArray();
+        SA_Interface.control.systolic_array_clear <= 1;
         partialSum <= '{default: '0};
         showValueFor(CLEAR);
         @(posedge clock);
-        SA_Interface.systolic_array_clear <= 0;
+        SA_Interface.control.systolic_array_clear <= 0;
     endtask
 
     // Function to check the DUT's output against expected results
-    function void checkResults();
+    function automatic void checkResults();
         int returnedResult;
         for (int row = 0; row < SIZE; row++) begin
             for (int col = SIZE - 1; col > -1; col--) begin 
@@ -108,10 +109,10 @@ module SystolicArray_TB
     endfunction
 
     // Function to display values based on the display_t enum
-    function void showValueFor(display_t show);
+    function automatic void showValueFor(display_t show);
         if (show == ROWS) begin
             for (int row = 0; row < SIZE; row++) begin 
-                $display("Output Data Row %0d: %0d", row, SA_Interface.systolic_array_output_data[row]);
+                $display("Output Data Row %0d: %0d", row, SA_Interface.data_path.systolic_array_output_data[row]);
             end
             $display("***********************************************");
         end else if (show == CLEAR) begin
@@ -120,7 +121,7 @@ module SystolicArray_TB
         end
     endfunction 
 
-    // Main testbench stimulus
+	 // Main testbench stimulus
     initial begin 
         $display("***********************************************");
         $display("Beginning Testbench, resetting DUT...");
@@ -132,7 +133,7 @@ module SystolicArray_TB
             inputData();
         end
         
-        SA_Interface.systolic_array_load <= 1;
+        SA_Interface.control.systolic_array_load <= 1;
         @(posedge clock);
         carryResults();
         
@@ -154,3 +155,4 @@ module SystolicArray_TB
 
 endmodule : SystolicArray_TB
 
+// ***/

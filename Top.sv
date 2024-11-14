@@ -29,26 +29,26 @@ module Top #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (
     output logic [WIDTH-1:0] systolic_array_output_data [SIZE-1:0]
 );
 
-    DesignInterface #(WIDTH, SIZE, ADDR) IB(CLOCK_50);
+    DesignInterface #(WIDTH, SIZE, ADDR) TOP(CLOCK_50);
 
     // Assign top-level inputs to the interface
-    assign IB.reset_n = reset_n;
-    assign IB.systolic_array_load = load;
-    assign IB.systolic_array_clear = clear;
+    assign TOP.reset_n = reset_n;
+    assign TOP.control.systolic_array_load = load;
+    assign TOP.control.systolic_array_clear = clear;
 
     InputBuffer #(WIDTH, SIZE, ADDR) input_buffer_inst (
-        .IB(IB)
+        .IB(TOP)
     );
 
     WeightBuffer #(WIDTH, SIZE, ADDR) weight_buffer_inst (
-        .WB(IB)
+        .WB(TOP)
     );
 
     SystolicArray #(WIDTH, SIZE) systolic_array_inst (
-        .SA(IB)
+        .SA(TOP)
     );
 
     // Assign output from the Systolic Array
-    assign systolic_array_output_data = IB.systolic_array_output_data;
+    assign systolic_array_output_data = TOP.data_path.systolic_array_output_data;
 
 endmodule : Top
