@@ -4,7 +4,7 @@
 * Systolic Array Testbench
 * Created By: Jordi Marcial Cruz
 * Project: LLM Accelerator 
-* Updated: November 10, 2024
+* Updated: November 16, 2024
 *
 * Description:
 * This testbench verifies the functionality of a Systolic Array module. 
@@ -20,16 +20,16 @@
 */
 
 module SystolicArray_TB
-    #(parameter WIDTH = 32, // Output for SA must be 22 bits or greater for an 8-bit 64x64 matrix
-                SIZE = 2);
+    #(parameter WIDTH = 8, // Output for SA must be 22 bits or greater for an 8-bit 64x64 matrix
+                SIZE = 8);
 
-    logic clock, reset_n;
+    bit clock, reset_n;
     // Instantiate the Design Interface
     DesignInterface #(WIDTH, SIZE) SA_Interface(clock);
 
     // Instantiate the Device Under Test (DUT) with the interface
     SystolicArray #(WIDTH, SIZE) DUT (
-        .SA(SA_Interface)
+        .SA(SA_Interface.SystolicArray) // Use SystolicArray modport
     );
 
     // Signals used for random stimulus
@@ -54,12 +54,12 @@ module SystolicArray_TB
     task resetDUT();
         begin
             SA_Interface.reset_n = 0;
-            SA_Interface.control.systolic_array_load = 0;
-            SA_Interface.control.systolic_array_clear = 0;
+            SA_Interface.sa_load = 0;       
+            SA_Interface.sa_clear = 0;      
             partialSum = '{default: '0};
-            SA_Interface.control.systolic_array_carry_enable = '{default: '0};
-            SA_Interface.data_path.weight_buffer_output_data = '{default: '0};
-            SA_Interface.data_path.input_buffer_output_data = '{default: '0};
+            SA_Interface.sa_carry_en = '{default: '0};
+            SA_Interface.wb_data_out = '{default: '0};
+            SA_Interface.ib_data_out = '{default: '0};
             #10;
             SA_Interface.reset_n = 1;
         end
@@ -78,8 +78,8 @@ module SystolicArray_TB
         randomizeInputs();
 
         for (int row = 0; row < SIZE; row++) begin
-            SA_Interface.data_path.weight_buffer_output_data[row] <= w[row];
-            SA_Interface.data_path.input_buffer_output_data[row] <= x[row];
+            SA_Interface.wb_data_out[row] <= w[row];   
+            SA_Interface.ib_data_out[row] <= x[row];   
             for (int col = 0; col < SIZE; col++) begin
                 partialSum[row][col] <= partialSum[row][col] + (x[row] * w[col]);
             end
@@ -92,22 +92,22 @@ module SystolicArray_TB
     task automatic carryResults();
         for (int col = SIZE - 1; col > -1; col--) begin
             for (int row = 0; row < SIZE; row++) begin 
-                storedResults[row].push_back(SA_Interface.data_path.systolic_array_output_data[row]);
+                storedResults[row].push_back(SA_Interface.sa_data_out[row]);
             end
             $display("Row Data for Clock Edge %0d", SIZE - 1 - col);
             showValueFor(ROWS);
-            SA_Interface.control.systolic_array_carry_enable[col] <= 1;
+            SA_Interface.sa_carry_en[col] <= 1; 			
             @(posedge clock);
         end
     endtask
 
     // Task to clear the systolic array
     task automatic clearArray();
-        SA_Interface.control.systolic_array_clear <= 1;
+        SA_Interface.sa_clear <= 1;                
         partialSum <= '{default: '0};
         showValueFor(CLEAR);
         @(posedge clock);
-        SA_Interface.control.systolic_array_clear <= 0;
+        SA_Interface.sa_clear <= 0;               
     endtask
 
     // Function to check the DUT's output against expected results
@@ -116,10 +116,11 @@ module SystolicArray_TB
         for (int row = 0; row < SIZE; row++) begin
             for (int col = SIZE - 1; col > -1; col--) begin 
                 returnedResult = storedResults[row].pop_front();
-                assert (returnedResult == partialSum[row][col])
+                // $display("returnedResult: %0d", returnedResult);
+                assert (returnedResult == partialSum[row][col]) 
                 else begin 
                     $error("Expected PE[%0d][%0d] result: %0d does not match result: %0d",
-                           row, col, partialSum[row][col], returnedResult);
+                            row, col, partialSum[row][col], returnedResult);
                     errors++; 
                 end
             end
@@ -130,7 +131,7 @@ module SystolicArray_TB
     function automatic void showValueFor(display_t show);
         if (show == ROWS) begin
             for (int row = 0; row < SIZE; row++) begin 
-                $display("Output Data Row %0d: %0d", row, SA_Interface.data_path.systolic_array_output_data[row]);
+                $display("Output Data Row %0d: %0d", row, SA_Interface.sa_data_out[row]); 
             end
             $display("***********************************************");
         end else if (show == CLEAR) begin
@@ -139,7 +140,7 @@ module SystolicArray_TB
         end
     endfunction 
 
-	 // Main testbench stimulus
+    // Main testbench stimulus
     initial begin 
         $display("***********************************************");
         $display("Beginning Testbench, resetting DUT...");
@@ -151,7 +152,7 @@ module SystolicArray_TB
             inputData();
         end
         
-        SA_Interface.control.systolic_array_load <= 1;
+        SA_Interface.sa_load <= 1;           
         @(posedge clock);
         carryResults();
         
@@ -163,7 +164,7 @@ module SystolicArray_TB
 
         clearArray();
         checkResults();
-
+		  
         $display("***********************************************");
         if (errors != 0) $display("Testbench failed with %0d errors!", errors);
         else $display("Testbench passed!");
@@ -171,4 +172,4 @@ module SystolicArray_TB
         $finish;
     end
 
-endmodule : SystolicArray_TB
+endmodule : SystolicArray_TB 

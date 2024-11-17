@@ -2,7 +2,7 @@
 * Design Interface for Input/Weight/Output Buffers, Controller, and Systolic Array
 * Created By: Jordi Marcial Cruz
 * Project: LLM Accelerator
-* Updated: November 14, 2024
+* Updated: November 16, 2024
 *
 * Description:
 * This interface defines the signals used for controlling and managing the Input/Weight/Output Buffers, Controller, and 
@@ -15,62 +15,89 @@ interface DesignInterface #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) 
     // Shared Signals
     logic reset_n; // Shared reset signal (active low)
 
-    // Control Signals Group 
-    typedef struct {
-        logic input_buffer_read;            // Read enable for Input Buffer
-        logic input_buffer_write1;          // Write enable for Input Buffer Port 1
-        logic input_buffer_write2;          // Write enable for Input Buffer Port 2
+	// Control Signals Group 
+    logic ib_rd;              // Input Buffer read enable
+    logic ib_wr1;             // Input Buffer write enable for Port 1
+    logic ib_wr2;             // Input Buffer write enable for Port 2
+    
+    logic wb_rd;              // Weight Buffer read enable
+    logic wb_wr1;             // Weight Buffer write enable for Port 1
+    logic wb_wr2;             // Weight Buffer write enable for Port 2
         
-        logic weight_buffer_read;           // Read enable for Weight Buffer
-        logic weight_buffer_write1;         // Write enable for Weight Buffer Port 1
-        logic weight_buffer_write2;         // Write enable for Weight Buffer Port 2
-		  
-		  logic output_buffer_read;			  // Read enable for Output Buffer
-		  logic output_buffer_write;		     // Write enable for Weight Buffer Port 1
-        
-        logic systolic_array_load;          // Load enable for Systolic Array
-        logic systolic_array_clear;         // Clear enable for Systolic Array
-        logic systolic_array_carry_enable [SIZE-1:0]; // Carry enable for Systolic Array elements
-    } ControlSignals;
+    logic ob_rd;              // Output Buffer read enable
+    logic ob_wr1;             // Output Buffer write enable for Port 1
+    
+    logic sa_load;            // Systolic Array load enable
+    logic sa_clear;           // Systolic Array clear enable
+    logic sa_carry_en [SIZE-1:0]; // Systolic Array carry enable
 
-    ControlSignals control;
-
-    // Data Path Signals Group
-    typedef struct {
-        // Input Buffer Data Signals
-        logic [WIDTH-1:0] input_buffer_input1 [SIZE-1:0]; // Data for Input Buffer (Port 1)
-        logic [WIDTH-1:0] input_buffer_input2 [SIZE-1:0]; // Data for Input Buffer (Port 2)
-        logic [WIDTH-1:0] input_buffer_output [SIZE-1:0]; // Output Data from Input Buffer
-
-        // Weight Buffer Data Signals
-        logic [WIDTH-1:0] weight_buffer_input1 [SIZE-1:0]; // Data for Weight Buffer (Port 1)
-        logic [WIDTH-1:0] weight_buffer_input2 [SIZE-1:0]; // Data for Weight Buffer (Port 2)
-        logic [WIDTH-1:0] weight_buffer_output [SIZE-1:0]; // Output Data from Weight Buffer
-		  
-		  // Output Buffer Data Signals
-		  logic [WIDTH-1:0] output_buffer_output [SIZE-1:0]; // Output Data from Output Buffer
-
-        // Systolic Array Data Signals
-        logic [WIDTH-1:0] systolic_array_output [SIZE-1:0]; // Output Data from Systolic Array
-    } DataPathSignals;
-
-    DataPathSignals data;
+	 // Data Path Signals Group
+    logic [WIDTH-1:0] ib_data_in1 [SIZE-1:0];  // Input Buffer data input (Port 1)
+    logic [WIDTH-1:0] ib_data_in2 [SIZE-1:0];  // Input Buffer data input (Port 2)
+    logic [WIDTH-1:0] ib_data_out [SIZE-1:0]; // Input Buffer data output
 	 
-	 typedef struct {
-		  // Input Buffer Address Signals
-        logic [ADDR-1:0] input_buffer_input1 [SIZE-1:0];  // Address for Input Buffer (Port 1)
-        logic [ADDR-1:0] input_buffer_input2 [SIZE-1:0];  // Address for Input Buffer (Port 2)
+	 logic [ADDR-1:0] ib_addr_in1 [SIZE-1:0];   // Input Buffer address input (Port 1)
+    logic [ADDR-1:0] ib_addr_in2 [SIZE-1:0];   // Input Buffer address input (Port 2)
 
-        // Weight Buffer Address Signals
-        logic [ADDR-1:0] weight_buffer_input1 [SIZE-1:0];  // Address for Weight Buffer (Port 1)
-        logic [ADDR-1:0] weight_buffer_input2 [SIZE-1:0];  // Address for Weight Buffer (Port 2)
-		  
-		  // Output Buffer Address Signals
-		  logic [ADDR-1:0] output_buffer_input1 [SIZE-1:0];  // Address for Output Buffer (Port 1)
-        logic [ADDR-1:0] output_buffer_input2 [SIZE-1:0];  // Address for Output Buffer (Port 2)
+    logic [WIDTH-1:0] wb_data_in1 [SIZE-1:0];  // Weight Buffer data input (Port 1)
+    logic [WIDTH-1:0] wb_data_in2 [SIZE-1:0];  // Weight Buffer data input (Port 2)
+    logic [WIDTH-1:0] wb_data_out [SIZE-1:0]; // Weight Buffer data output
+	 
+	 logic [ADDR-1:0] wb_addr_in1 [SIZE-1:0];   // Weight Buffer address input (Port 1)
+    logic [ADDR-1:0] wb_addr_in2 [SIZE-1:0];   // Weight Buffer address input (Port 2)
+        
+    logic [WIDTH-1:0] ob_data_out [SIZE-1:0]; // Output Buffer data output
+        
+    logic [ADDR-1:0] ob_addr_in1 [SIZE-1:0];   // Output Buffer address input (Port 1)
+	 
+	 logic [WIDTH-1:0] sa_data_out [SIZE-1:0]; // Systolic Array data output
 
-    } AddressSignals;
+    // Modport for the Input Buffer
+    modport InputBuffer (
+        input clock, reset_n,
+        input ib_rd, 
+        input ib_wr1, 
+        input ib_wr2,
+        input ib_data_in1, 
+        input ib_data_in2,
+        output ib_data_out,
+        input ib_addr_in1, 
+        input ib_addr_in2
+    );
 
-    AddressSignals address;
+    // Modport for the Weight Buffer
+    modport WeightBuffer (
+        input clock, reset_n,
+        input wb_rd,
+        input wb_wr1,
+        input wb_wr2,
+        input wb_data_in1,
+        input wb_data_in2,
+        output wb_data_out,
+        input wb_addr_in1,
+        input wb_addr_in2
+    );
 
+    // Modport for the Output Buffer
+    modport OutputBuffer (
+        input clock, reset_n,
+        input ob_rd,
+        input ob_wr1,
+		  input sa_data_out,
+        output ob_data_out,
+        input ob_addr_in1
+    );
+
+    // Modport for the Systolic Array
+    modport SystolicArray (
+        input clock, reset_n,
+        input sa_load,
+        input sa_clear,
+        input sa_carry_en,
+        input ib_data_out,
+        input wb_data_out,
+        output sa_data_out 
+    );
+    
 endinterface : DesignInterface
+
