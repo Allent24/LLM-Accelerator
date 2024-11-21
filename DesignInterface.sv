@@ -55,7 +55,7 @@ interface DesignInterface #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) 
     // Modport for the Input Buffer
     modport InputBuffer (
         input clock, reset_n,
-        input ib_rd, 
+        input ib_rd, // Change to rd1
         input ib_wr1, 
         input ib_wr2,
         input ib_data_in1, 
