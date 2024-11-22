@@ -40,7 +40,7 @@ module WeightBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Desig
                 .clock          (WB.clock),            // Clock signal
                 .data_a         (WB.wb_data_in1[i]),   // Data input for write port A
                 .data_b         (WB.wb_data_in2[i]),   // Data input for write port B
-                .rden_a         (WB.wb_rd),            // Read enable for port A
+                .rden_a         (WB.wb_rd1),            // Read enable for port A
                 .wren_a         (WB.wb_wr1),           // Write enable for port A
                 .wren_b         (WB.wb_wr2),           // Write enable for port B
                 .q_a            (vector_data[i]));     // Output data from port A
