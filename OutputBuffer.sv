@@ -37,7 +37,7 @@ module OutputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Desig
                   .clock          (OB.clock),           // Clock signal for synchronization
                   .data_a         (OB.sa_data_out[i]),  // Data input from systolic array
                   .data_b         (),                   // Unused data port
-                  .rden_a         (OB.ob_rd),           // Read enable signal
+                  .rden_a         (OB.ob_rd1),           // Read enable signal
                   .wren_a         (OB.ob_wr1),          // Write enable signal
                   .wren_b         (),                   // Unused write enable port
                   .q_a            (OB.ob_data_out[i])); // Output data from the buffer
