@@ -16,15 +16,15 @@ interface DesignInterface #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) 
     logic reset_n; // Shared reset signal (active low)
 
 	// Control Signals Group 
-    logic ib_rd;              // Input Buffer read enable
+    logic ib_rd1;              // Input Buffer read enable
     logic ib_wr1;             // Input Buffer write enable for Port 1
     logic ib_wr2;             // Input Buffer write enable for Port 2
     
-    logic wb_rd;              // Weight Buffer read enable
+    logic wb_rd1;              // Weight Buffer read enable
     logic wb_wr1;             // Weight Buffer write enable for Port 1
     logic wb_wr2;             // Weight Buffer write enable for Port 2
         
-    logic ob_rd;              // Output Buffer read enable
+    logic ob_rd1;              // Output Buffer read enable
     logic ob_wr1;             // Output Buffer write enable for Port 1
     
     logic sa_load;            // Systolic Array load enable
@@ -55,7 +55,7 @@ interface DesignInterface #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) 
     // Modport for the Input Buffer
     modport InputBuffer (
         input clock, reset_n,
-        input ib_rd, // Change to rd1
+        input ib_rd1, // Change to rd1
         input ib_wr1, 
         input ib_wr2,
         input ib_data_in1, 
@@ -81,7 +81,7 @@ interface DesignInterface #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) 
     // Modport for the Output Buffer
     modport OutputBuffer (
         input clock, reset_n,
-        input ob_rd,
+        input ob_rd1,
         input ob_wr1,
 		  input sa_data_out,
         output ob_data_out,
