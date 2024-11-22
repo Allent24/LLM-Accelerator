@@ -40,7 +40,7 @@ module InputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Design
                  .clock          (IB.clock),              // Clock signal for synchronization
                  .data_a         (IB.ib_data_in1[i]),     // Data input for write operation (port A)
                  .data_b         (IB.ib_data_in2[i]),     // Data input for write operation (port B)
-                 .rden_a         (IB.ib_rd),              // Read enable signal
+                 .rden_a         (IB.ib_rd1),              // Read enable signal
                  .wren_a         (IB.ib_wr1),             // Write enable signal for port A
                  .wren_b         (IB.ib_wr2),             // Write enable signal for port B
                  .q_a            (vector_data[i]));       // Output data from the buffer
