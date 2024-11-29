@@ -4,7 +4,7 @@
 * Input Buffer Module
 * Created By: Jordi Marcial Cruz
 * Project: LLM Accelerator 
-* Updated: November 16, 2024
+* Updated: November 26, 2024
 *
 * Description:
 * This module implements an input buffer for storing data inputs to the LLM Accelerator. 
@@ -18,7 +18,7 @@
 *   - reset_n: Active low reset signal to reset the buffer.
 *   - ib_data_in1: Data input for write operations (port A).
 *   - ib_data_in2: Data input for write operations (port B).
-*   - ib_rd: Read enable signal for accessing the vector data.
+*   - ib_rd1: Read enable signal for accessing the vector data.
 *   - ib_wr1: Write enable signal for storing data into the buffer (port A).
 *   - ib_wr2: Write enable signal for storing data into the buffer (port B).
 *
@@ -35,8 +35,8 @@ module InputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Design
         for (i = 0; i < SIZE; i++) begin : VECTOR
             // Instantiate Vector module for each element in the input buffer
             Vector #(WIDTH, ADDR) ROWS
-                (.address_a      (IB.ib_addr_in1[i]),     // Address input for port A
-                 .address_b      (IB.ib_addr_in2[i]),     // Address input for port B
+                (.address_a      (IB.ib_addr_in1),    	 // Address input for port A
+                 .address_b      (IB.ib_addr_in2),    	 // Address input for port B
                  .clock          (IB.clock),              // Clock signal for synchronization
                  .data_a         (IB.ib_data_in1[i]),     // Data input for write operation (port A)
                  .data_b         (IB.ib_data_in2[i]),     // Data input for write operation (port B)

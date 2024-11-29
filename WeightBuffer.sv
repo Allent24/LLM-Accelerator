@@ -4,7 +4,7 @@
 * Weight Buffer Module
 * Created By: Jordi Marcial Cruz
 * Project: LLM Accelerator 
-* Updated: November 16, 2024
+* Updated: November 26, 2024
 *
 * Description:
 * This module implements a weight buffer to store and pipeline weight data.
@@ -18,7 +18,7 @@
 *   - wb_addr_in2: Address lines for accessing vector data (port B).
 *   - wb_data_in1: Data input for write operations (port A).
 *   - wb_data_in2: Data input for write operations (port B).
-*   - wb_rd: Read enable signal for the vectors.
+*   - wb_rd1: Read enable signal for the vectors.
 *   - wb_wr1: Write enable signal for port A.
 *   - wb_wr2: Write enable signal for port B.
 *
@@ -35,8 +35,8 @@ module WeightBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Desig
         for (i = 0; i < SIZE; i++) begin : VECTOR
             // Instantiation of the Vector module for each vector element in the buffer
             Vector #(WIDTH, ADDR) ROWS
-                (.address_a     (WB.wb_addr_in1[i]),   // Address for port A
-                .address_b      (WB.wb_addr_in2[i]),   // Address for port B
+                (.address_a     (WB.wb_addr_in1),      // Address for port A
+                .address_b      (WB.wb_addr_in2),  	 // Address for port B
                 .clock          (WB.clock),            // Clock signal
                 .data_a         (WB.wb_data_in1[i]),   // Data input for write port A
                 .data_b         (WB.wb_data_in2[i]),   // Data input for write port B
