@@ -28,9 +28,8 @@ The core operation accelerated by this design involves matrix-vector multiplicat
   - **Data Inputs**: `weight_data`, `input_data`.  
 - **Outputs**:  
   - `output_data`: Contains results of the matrix multiplication.  
-- **Role**: Core computational block for matrix operations, critical for the Attention Module.  
-- **Performance Note**: The systolic array achieved a **maximum operating frequency of 450 MHz** for a **32x32, 8-bit wide** configuration when using **Logic Elements (LE)** for multiplication. This significantly outperformed the **DSP block implementation**, which only reached **155 MHz** under the same conditions. The difference in performance is due to the internal architecture of the **Cyclone V FPGA**, where the shorter routing distance to LEs allowed faster multiplication compared to DSP blocks, which require longer routing paths. The **Quartus Timing Analyzer** was used to validate these performance metrics. Notably, this discrepancy was less pronounced in smaller systolic arrays, where the performance of LEs and DSP blocks was comparable.
-
+- **Role**: Core computational block for matrix operations, critical for the Attention Module.
+  
 ---
 
 ### **3. Processing Element (PE) Module**  
@@ -57,8 +56,6 @@ The core operation accelerated by this design involves matrix-vector multiplicat
 - **Features**:  
   - Leverages dedicated hardware resources for high-speed multiplication.  
 - **Role**: Provides a more resource-efficient option when targeting designs prioritizing area usage.  
-- **Performance Note**: The DSP multiplier showed lower maximum operating frequency compared to the LE multiplier for larger systolic arrays due to increased routing distance, making it less efficient for the specific multiplication operations required in the **32x32** array configuration.
-
 ---
 
 ### **6. Input Buffer Module**  
