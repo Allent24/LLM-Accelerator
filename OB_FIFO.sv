@@ -3,8 +3,7 @@
 module OB_FIFO #(parameter WIDTH = 8, SIZE = 6)(
 	input logic clock, reset_n, read, write,
 	input logic [WIDTH-1:0] data_in,
-	output logic almost_empty, empty,
-	output logic almost_full, full,
+	output logic empty, full,
 	output logic [WIDTH-1:0] data_out);
 	
 	localparam ADDR_SIZE = $clog2(SIZE);
@@ -19,9 +18,6 @@ module OB_FIFO #(parameter WIDTH = 8, SIZE = 6)(
 	
 	assign full = (counter == SIZE) ? ON : OFF;
 	assign empty = (counter == 0) ? ON : OFF;
-	
-	assign almost_full = (counter == SIZE - 1) ? ON : OFF;
-	assign almost_empty = (counter == 1) ? ON : OFF;
 	
 	always_ff @(posedge clock or negedge reset_n) begin
 		if (!reset_n) begin 
