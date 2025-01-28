@@ -38,7 +38,7 @@ module OutputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Desig
 	logic vector_read, vector_write;
 	logic [ADDR-1:0] vector_addr;
 	logic [SIZE-1:0] empty;
-   logic [SIZE-1:0] full;
+    logic [SIZE-1:0] full;
 	
 	DataController #(WIDTH, SIZE) Controller (
 		.clock					(OB.clock), 
