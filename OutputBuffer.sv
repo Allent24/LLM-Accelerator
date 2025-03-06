@@ -1,27 +1,14 @@
-`timescale 1 ps / 1 ps
-
 /* 
 * Output Buffer Module
 * Created By: Jordi Marcial Cruz
-* Project: LLM Accelerator 
-* Updated: December 10, 2024
+* Updated: March 4th, 2024
 *
 * Description:
 * This module implements an output buffer to store results from the LLM Accelerator and facilitate their transfer to other components. 
 * The buffer can store multiple vectors and is parameterizable in terms of data width and size, allowing it to accommodate different
 * processing requirements.
-*
-* Inputs:
-*   - ob_addr_in1: Address lines to specify which part of the output buffer to read or write.
-*   - clock: Clock signal for synchronous operations.
-*   - reset_n: Active low reset signal to reset the buffer.
-*   - sa_data_out: Data input from the systolic array output.
-*   - ob_rd: Read enable signal to allow reading from the output buffer.
-*   - ob_wr1: Write enable signal for storing data from the systolic array into the buffer.
-*
-* Outputs:
-*   - ob_data_out: Data output from the output buffer for external usage.
 */
+`timescale 1 ps / 1 ps
 
 module OutputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (DesignInterface.OutputBuffer OB); 
 	logic [WIDTH-1:0] array_data_out [SIZE-1:0];
@@ -57,14 +44,14 @@ module OutputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Desig
 	generate 
 		for (j = 0; j < SIZE; j++) begin : FIFO
 	  // The FIFO instantiation if an output FIFO is required for data streaming
-			  OB_FIFO #(WIDTH, SIZE) FIFO (
-					.clock				(OB.clock), 
-					.reset_n				(OB.reset_n), 
-					.read					(fifo_read), 				// Secondary Controller 
+            Fifo_Buffer #(WIDTH, SIZE) FIFO (
+					.clk				(OB.clock), 
+					.reset_n			(OB.reset_n), 
+					.read				(fifo_read), 				// Secondary Controller 
 					.write				(fifo_write), 			// Secondary Controller 
-					.data_in				(array_data_out[j]),
+					.data_in			(array_data_out[j]),
 					.empty				(empty[j]),
-					.full					(full[j]),
+					.full				(full[j]),
 					.data_out			(fifo_data_out[j]));
 		 end
 	endgenerate 
@@ -81,14 +68,14 @@ module OutputBuffer #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (Desig
              // Instantiate Vector module for each vector element in the output buffer
 			Vector #(WIDTH, ADDR) ROWS
 				(.address_a      (vector_addr),   			// Address input for read/write access
-             .address_b      (),                   	// Unused address port
-             .clock          (OB.clock),           	// Clock signal for synchronization
-             .data_a         (vector_data_in[i]),     // Data input from systolic array
-             .data_b         (),                  		 // Unused data port
-             .rden_a         (vector_read),          	// Read enable signal
-             .wren_a         (vector_write),         	 // Write enable signal
-             .wren_b         (),                   // Unused write enable port
-             .q_a            (OB.ob_data_out[i])); // Output data from the buffer
+                 .address_b      (),                   	// Unused address port
+                 .clock          (OB.clock),           	// Clock signal for synchronization
+                 .data_a         (vector_data_in[i]),     // Data input from systolic array
+                 .data_b         (),                  		 // Unused data port
+                 .rden_a         (vector_read),          	// Read enable signal
+                 .wren_a         (vector_write),         	 // Write enable signal
+                 .wren_b         (),                   // Unused write enable port
+                 .q_a            (OB.ob_data_out[i])); // Output data from the buffer
          end
      endgenerate 
 		
@@ -136,47 +123,6 @@ module DataController #(parameter WIDTH = 8, SIZE = 6, ADDR = $clog2(SIZE)) (
 	assign vector_write = (operation == LOAD) ? ON : OFF;
 	
 endmodule : DataController
-
-module OB_FIFO #(parameter WIDTH = 8, SIZE = 6)(
-	input logic clock, reset_n, read, write,
-	input logic [WIDTH-1:0] data_in,
-	output logic empty, full,
-	output logic [WIDTH-1:0] data_out);
-	
-	localparam ADDR_SIZE = $clog2(SIZE);
-	enum logic {OFF, ON} switch_t;
-	
-	logic valid_read, valid_write;
-	logic [ADDR_SIZE-1:0] counter, rd_ptr, wr_ptr;
-	logic [WIDTH-1:0] memory [SIZE-1:0];
-	
-	assign valid_read = (!empty && !write && read) ? ON : OFF;
-	assign valid_write = (!full && !read && write) ? ON : OFF;
-	
-	assign full = (counter == SIZE) ? ON : OFF;
-	assign empty = (counter == 0) ? ON : OFF;
-	
-	always_ff @(posedge clock or negedge reset_n) begin
-		if (!reset_n) begin 
-			memory <= '{default : '0};
-			counter <= '0;
-			wr_ptr <= '0;
-			rd_ptr <= '0;
-		end else if (valid_write) begin
-			memory[wr_ptr] <= data_in;
-			counter <= counter + 1;	
-			if (wr_ptr == SIZE - 1) wr_ptr <= 0;
-			else wr_ptr <= wr_ptr + 1;
-		end else if (valid_read) begin 
-			counter <= counter - 1;
-			if (rd_ptr == SIZE - 1) rd_ptr <= 0;
-			else rd_ptr <= rd_ptr + 1;
-		end 
-	end
-	
-	assign data_out = memory[rd_ptr];
-
-endmodule : OB_FIFO
 
 
 
