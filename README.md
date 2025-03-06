@@ -1,4 +1,4 @@
-# **LLM Accelerator (Attention Module)**  
+# **Attention Module**  
 
 ## **Project Overview**  
 This capstone project implements a **hardware accelerator for the Attention Module** in simple Large Language Models (LLMs). Developed by students at **Rowan University** under **PI Dwaipayan Chakraborty** during the Fall 2024 semester, the project focuses on efficient **matrix multiplication** operations, leveraging a **systolic array architecture** to optimize performance. The design is implemented on an **Altera Cyclone V FPGA**, emphasizing modularity, scalability, and energy efficiency.
