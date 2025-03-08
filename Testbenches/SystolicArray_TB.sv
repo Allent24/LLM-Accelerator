@@ -1,7 +1,7 @@
 /* 
 * Systolic Array Testbench
 * Created By: Jordi Marcial Cruz
-* Updated: March 5th, 2025
+* Updated: March 7th, 2025
 *
 * Description:
 * This testbench verifies the functionality of a Systolic Array module. 
@@ -11,32 +11,50 @@
 
 `timescale 1 ps / 1 ps
 
-class SystolicArray_Scoreboard 
-  #(parameter WIDTH = 8,
-   			  SIZE = 8);
-  int errors;
-  rand bit [WIDTH-1:0] weight_data [SIZE-1:0];
-  rand bit [WIDTH-1:0] input_data  [SIZE-1:0]; 
-  rand bit [WIDTH-1:0] expected_partial_sums [SIZE-1:0][SIZE-1:0];
-  rand logic [WIDTH-1:0] actual_partial_sums [SIZE-1:0] [$];
+virtual class Base  
+  #(parameter WIDTH = 32,
+    		  SIZE = 8);
+  
+endclass : Base
+
+class Driver extends Base;
+  randc bit [WIDTH-1:0] weight_data [SIZE-1:0];
+  randc bit [WIDTH-1:0] input_data  [SIZE-1:0]; 
+  
+  constraint weight_data_range {
+    foreach(weight_data[index])
+      weight_data[index] inside { [0:99] }; 
+  }
+  
+  constraint input_data_range {
+    foreach(input_data[index]) 
+      input_data[index] inside { [0:99] };
+  }
+  
+  function new();
+    this.weight_data = '{default: '0};
+    this.input_data = '{default: '0};
+  endfunction;
+  
+endclass : Driver
+
+class Scoreboard extends Base;
+  static int errors;
+  bit [WIDTH-1:0] expected_partial_sums [SIZE-1:0][SIZE-1:0];
+  logic [WIDTH-1:0] actual_partial_sums [SIZE-1:0] [$];
   
   function new();
 	this.errors = 0;
-    this.weight_data = '{default: '0};
-    this.input_data = '{default: '0};
     this.expected_partial_sums = '{default: '0};
   endfunction 
   
-  function void f_randomize_inputs();
-	for (int index = 0; index < SIZE; index++) begin 
-    	this.weight_data[index] = $urandom_range(1, 255);
-        this.input_data[index] = $urandom_range(1, 255);
-    end
-  endfunction 
-  
-  function void f_accumulate_partial_sums(input int row);
+  function void f_accumulate_partial_sums (
+    input int row,
+    input logic [WIDTH-1:0] input_data [SIZE-1:0], 
+    input logic [WIDTH-1:0] weight_data [SIZE-1:0]);
+    
     for (int col = 0; col < SIZE; col++) begin
-      this.expected_partial_sums[row][col] = this.expected_partial_sums[row][col] + (this.input_data[row] * this.weight_data[col]);
+      this.expected_partial_sums[row][col] = this.expected_partial_sums[row][col] + (input_data[row] * weight_data[col]);
     end
   endfunction
   
@@ -70,11 +88,11 @@ class SystolicArray_Scoreboard
       $display("\nTestbench passed!");
     end
   endfunction 
-endclass
-
+  
+endclass : Scoreboard
 
 module SystolicArray_TB
-    #(parameter WIDTH = 8, 
+  #(parameter WIDTH = 32, 
                 SIZE = 8);
 
     bit clock, reset_n;
@@ -86,7 +104,8 @@ module SystolicArray_TB
 
     typedef enum int {INPUTS, RANDOMIZE, RESULT, ROWS, CLEAR} display_t;
   
-  	SystolicArray_Scoreboard sb = new;
+  	Scoreboard sb = new();
+  	Driver dr = new();
 
     initial begin 
         clock = 1;
@@ -102,7 +121,7 @@ module SystolicArray_TB
         SA_Interface.ib_data_out = '{default: '0};
         #10;
         SA_Interface.reset_n = 1;
-    endtask
+    endtask 
   
     task automatic t_clear_array();
         SA_Interface.sa_clear <= 1;                
@@ -110,7 +129,7 @@ module SystolicArray_TB
       	sb.f_clear_partial_sum();
         @(posedge clock);
         SA_Interface.sa_clear <= 0;               
-    endtask
+    endtask 
   
     task automatic t_carry_results();
         for (int col = SIZE - 1; col > -1; col--) begin
@@ -122,15 +141,15 @@ module SystolicArray_TB
             SA_Interface.sa_carry_en[col] <= 1; 			
             @(posedge clock);
         end
-    endtask
+    endtask 
   
     task automatic t_input_data();
-        sb.f_randomize_inputs();
+        dr.randomize();
 
         for (int row = 0; row < SIZE; row++) begin
-          SA_Interface.wb_data_out[row] <= sb.weight_data[row];   
-          SA_Interface.ib_data_out[row] <= sb.input_data[row];   
-          sb.f_accumulate_partial_sums(row);
+          SA_Interface.wb_data_out[row] <= dr.weight_data[row];   
+          SA_Interface.ib_data_out[row] <= dr.input_data[row];   
+          sb.f_accumulate_partial_sums(row, dr.input_data, dr.weight_data);
         end
 
         @(posedge clock);
@@ -164,7 +183,7 @@ module SystolicArray_TB
         t_carry_results();
         
         repeat (10) begin 
-            @(posedge clock);
+          @(posedge clock);
         end
 
         sb.f_check_results();
@@ -172,6 +191,7 @@ module SystolicArray_TB
         t_clear_array();
 		  
       	sb.f_check_testbench_errors();
+      
         $finish;
     end
 
