@@ -1,0 +1,107 @@
+module input_buffer (
+    input  logic        clk,
+    input  logic        ipre_rst,
+    input  logic        wr_idata,
+    input  logic        rd_idata,
+    input  logic [31:0] data_in_in,
+    output logic [7:0]  idata_out,
+    output logic        iprereg_full,
+    output logic        iprereg_empty
+);
+
+    logic [31:0] ipre_reg[7:0];   // FIFO register array
+    logic [3:0]  fifo_count;      // Number of valid 32-bit words
+    logic [2:0]  i;               // Byte counter
+
+    // Main logic
+    always_ff @(posedge clk or posedge ipre_rst) begin
+        if (ipre_rst) begin
+            fifo_count <= 4'd0;
+            i <= 3'd0;
+            idata_out <= 8'd0;
+            for (int j = 0; j < 8; j++) begin
+                ipre_reg[j] <= 32'd0;
+            end
+        end else begin
+            // WRITE logic
+            if (wr_idata && !iprereg_full) begin
+                case (fifo_count)
+                    4'b0000: ipre_reg[0] <= data_in_in;
+                    4'b0001: begin
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                    4'b0010: begin
+                        ipre_reg[2] <= ipre_reg[1];
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                    4'b0011: begin
+                        ipre_reg[3] <= ipre_reg[2];
+                        ipre_reg[2] <= ipre_reg[1];
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                    4'b0100: begin
+                        ipre_reg[4] <= ipre_reg[3];
+                        ipre_reg[3] <= ipre_reg[2];
+                        ipre_reg[2] <= ipre_reg[1];
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                    4'b0101: begin
+                        ipre_reg[5] <= ipre_reg[4];
+                        ipre_reg[4] <= ipre_reg[3];
+                        ipre_reg[3] <= ipre_reg[2];
+                        ipre_reg[2] <= ipre_reg[1];
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                    4'b0110: begin
+                        ipre_reg[6] <= ipre_reg[5];
+                        ipre_reg[5] <= ipre_reg[4];
+                        ipre_reg[4] <= ipre_reg[3];
+                        ipre_reg[3] <= ipre_reg[2];
+                        ipre_reg[2] <= ipre_reg[1];
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                    4'b0111: begin
+                        ipre_reg[7] <= ipre_reg[6];
+                        ipre_reg[6] <= ipre_reg[5];
+                        ipre_reg[5] <= ipre_reg[4];
+                        ipre_reg[4] <= ipre_reg[3];
+                        ipre_reg[3] <= ipre_reg[2];
+                        ipre_reg[2] <= ipre_reg[1];
+                        ipre_reg[1] <= ipre_reg[0];
+                        ipre_reg[0] <= data_in_in;
+                    end
+                endcase
+                fifo_count <= fifo_count + 1;
+            end
+
+            // READ logic
+            if (rd_idata && !iprereg_empty) begin
+                case (i)
+                    3'd0: idata_out <= ipre_reg[7][31:24];
+                    3'd1: idata_out <= ipre_reg[7][23:16];
+                    3'd2: idata_out <= ipre_reg[7][15:8];
+                    3'd3: idata_out <= ipre_reg[7][7:0];
+                    default: idata_out <= 8'd0;
+                endcase
+
+                if (i == 3) begin
+                    i <= 0;
+                    fifo_count <= fifo_count - 1;
+                end else begin
+                    i <= i + 1;
+                end
+            end
+        end
+    end
+
+    // Continuous status assignments
+    assign iprereg_full  = (fifo_count == 4'd8);
+    assign iprereg_empty = (fifo_count == 4'd0);
+
+endmodule
